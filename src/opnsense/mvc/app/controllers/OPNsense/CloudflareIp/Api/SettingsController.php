@@ -28,7 +28,7 @@ class SettingsController extends ApiMutableModelControllerBase
      */
     public function getWanAction($uuid = null)
     {
-        return $this->getBase('wans.wan', 'wan', $uuid);
+        return $this->getBase('wan', 'wans.wan', $uuid);
     }
 
     /**
@@ -36,7 +36,7 @@ class SettingsController extends ApiMutableModelControllerBase
      */
     public function addWanAction()
     {
-        return $this->addBase('wans.wan', 'wan');
+        return $this->addBase('wan', 'wans.wan');
     }
 
     /**
@@ -44,7 +44,7 @@ class SettingsController extends ApiMutableModelControllerBase
      */
     public function setWanAction($uuid)
     {
-        return $this->setBase('wans.wan', 'wan', $uuid);
+        return $this->setBase('wan', 'wans.wan', $uuid);
     }
 
     /**
@@ -60,7 +60,7 @@ class SettingsController extends ApiMutableModelControllerBase
      */
     public function toggleWanAction($uuid, $enabled = null)
     {
-        return $this->toggleBase('wans.wan', $uuid, 'enabled', $enabled);
+        return $this->toggleBase('wans.wan', $uuid, $enabled);
     }
 
     /**
