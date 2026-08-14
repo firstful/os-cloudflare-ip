@@ -1,0 +1,48 @@
+<model>
+  <mount>OPNsense/CloudflareIp</mount>
+  <description>Cloudflare named IP list rotation</description>
+  <version>0.1</version>
+  <items>
+    <general>
+      <enabled type="BooleanField">
+        <default>1</default>
+      </enabled>
+      <account_id type="TextField">
+        <Required>Y</Required>
+        <mask>/^[a-f0-9]{32}$/i</mask>
+        <ValidationMessage>Enter a 32-char hexadecimal Cloudflare Account ID</ValidationMessage>
+      </account_id>
+      <api_token type="PasswordField">
+        <Required>Y</Required>
+      </api_token>
+      <interval type="IntegerField">
+        <default>5</default>
+        <MinimumValue>1</MinimumValue>
+        <MaximumValue>1440</MaximumValue>
+      </interval>
+    </general>
+    <wans>
+      <wan type="ArrayField">
+        <wan type="ListField">
+          <enabled type="BooleanField">
+            <default>1</default>
+          </enabled>
+          <interface type="TextField">
+            <Required>Y</Required>
+            <mask>/^[a-z0-9_.]+$/i</mask>
+            <ValidationMessage>Enter the OPNsense interface name, e.g. wan</ValidationMessage>
+          </interface>
+          <list_name type="TextField">
+            <Required>Y</Required>
+            <mask>/^[a-zA-Z0-9\-_ ]+$/</mask>
+            <ValidationMessage>Enter the Cloudflare list name</ValidationMessage>
+          </list_name>
+          <include_v6 type="BooleanField">
+            <default>0</default>
+          </include_v6>
+          <description type="TextField"/>
+        </wan>
+      </wan>
+    </wans>
+  </items>
+</model>

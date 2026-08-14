@@ -1,0 +1,15 @@
+Keep Cloudflare named IP lists in sync with the router's WAN egress IP(s).
+One named IP list per configured WAN interface.
+
+The router is the DHCP client for the WAN, so it knows the egress IP
+natively -- no external echo services, no polling, no third-party claims.
+On every interval the plugin reads each configured WAN interface's current
+IPv4 (and optionally global IPv6) address, compares with the last known
+state, and only calls the Cloudflare Lists API when something changed.
+
+Credential design: the plugin needs exactly ONE Cloudflare API permission
+(Account -> Account Rulesets -> Edit). It cannot touch DNS, tunnels, tokens,
+Access policies, or billing. The token is entered manually in the plugin UI
+and stored in the OPNsense configuration.
+
+WWW: https://gitea.ffilt.us/reeds/os-cloudflare-ip
