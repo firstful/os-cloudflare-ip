@@ -1,0 +1,32 @@
+<form>
+  <field>
+    <id>general.enabled</id>
+    <label>Enabled</label>
+    <type>checkbox</type>
+    <help>Enable Cloudflare IP list rotation.</help>
+  </field>
+  <field>
+    <id>general.account_id</id>
+    <label>Account ID</label>
+    <type>text</type>
+    <help>Cloudflare account ID (32-char hex, visible on the CF dashboard).</help>
+  </field>
+  <field>
+    <id>general.api_token</id>
+    <label>API Token</label>
+    <type>password</type>
+    <help>Token scoped to Account &gt; Account Rule Lists &gt; Write only (Lists API).</help>
+  </field>
+  <field>
+    <id>general.list_name</id>
+    <label>Cloudflare list name</label>
+    <type>text</type>
+    <help>Named IP list that holds all WAN egress IPs (letters and digits only, no dashes). Created if missing.</help>
+  </field>
+  <field>
+    <id>general.interval</id>
+    <label>Update interval (minutes)</label>
+    <type>text</type>
+    <help>How often to check WAN IPs against Cloudflare lists.</help>
+  </field>
+</form>

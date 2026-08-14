@@ -8,20 +8,24 @@
             <form id="frm_general" method="post">
                 <table class="table table-condensed">
                     <tr>
-                        <td><label for="general.enabled">Enabled</label></td>
-                        <td>{{ partial 'layout_partials/base_form_field' fields=generalForm.enabled }}</td>
+                        <td style="width:220px;"><label for="general.enabled">Enabled</label></td>
+                        <td><input type="checkbox" id="general.enabled" name="general.enabled" value="1" /></td>
                     </tr>
                     <tr>
                         <td><label for="general.account_id">Cloudflare Account ID</label></td>
-                        <td>{{ partial 'layout_partials/base_form_field' fields=generalForm.account_id }}</td>
+                        <td><input type="text" id="general.account_id" name="general.account_id" class="form-control" /></td>
                     </tr>
                     <tr>
                         <td><label for="general.api_token">API token</label></td>
-                        <td>{{ partial 'layout_partials/base_form_field' fields=generalForm.api_token }}</td>
+                        <td><input type="password" id="general.api_token" name="general.api_token" class="form-control" /></td>
+                    </tr>
+                    <tr>
+                        <td><label for="general.list_name">Cloudflare list name</label></td>
+                        <td><input type="text" id="general.list_name" name="general.list_name" class="form-control" placeholder="home-egress" /></td>
                     </tr>
                     <tr>
                         <td><label for="general.interval">Check interval (minutes)</label></td>
-                        <td>{{ partial 'layout_partials/base_form_field' fields=generalForm.interval }}</td>
+                        <td><input type="text" id="general.interval" name="general.interval" class="form-control" value="5" /></td>
                     </tr>
                 </table>
                 <hr />
@@ -34,7 +38,6 @@
                     <tr>
                         <th data-column-id="enabled" data-width="60px" data-formatter="enabled">Enabled</th>
                         <th data-column-id="interface" data-identifier="true">Interface</th>
-                        <th data-column-id="list_name">Cloudflare list name</th>
                         <th data-column-id="include_v6">Include v6</th>
                         <th data-column-id="description">Description</th>
                         <th data-column-id="commands" data-formatter="commands" data-sortable="false">Commands</th>
@@ -70,12 +73,6 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-3 control-label" for="wan.list_name">List name</label>
-                        <div class="col-sm-7">
-                            <input type="text" id="wan.list_name" name="wan.list_name" class="form-control" placeholder="home-egress-wan" />
-                        </div>
-                    </div>
-                    <div class="form-group">
                         <label class="col-sm-3 control-label" for="wan.include_v6">Include IPv6</label>
                         <div class="col-sm-7">
                             <input type="checkbox" id="wan.include_v6" name="wan.include_v6" value="1" />
@@ -101,3 +98,4 @@
         </div>
     </div>
 </div>
+<script src="{{ cache_safe('/ui/js/opnsense/scripts/cloudflareip/settings.js') }}"></script>

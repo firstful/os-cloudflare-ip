@@ -1,0 +1,5 @@
+<menu>
+    <Services>
+        <CloudflareIp url="/ui/cloudflareip/settings">Cloudflare IP Lists</CloudflareIp>
+    </Services>
+</menu>

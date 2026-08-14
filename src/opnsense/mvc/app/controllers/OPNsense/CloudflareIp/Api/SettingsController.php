@@ -20,7 +20,7 @@ class SettingsController extends ApiMutableModelControllerBase
      */
     public function searchWansAction()
     {
-        return $this->searchBase('wans.wan', array('interface', 'list_name', 'include_v6', 'enabled', 'description'));
+        return $this->searchBase('wans.wan', array('interface', 'include_v6', 'enabled', 'description'));
     }
 
     /**

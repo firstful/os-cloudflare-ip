@@ -91,6 +91,10 @@ function ensure_list($accountId, $token, $listName)
         'kind' => 'ip',
         'description' => 'Maintained by os-cloudflare-ip (OPNsense)',
     ));
+    if (($data['success'] ?? false) !== true || !isset($data['result']['id'])) {
+        $msg = $data['errors'][0]['message'] ?? 'unknown error';
+        throw new Exception("cannot create list '$listName': $msg");
+    }
     return $data['result']['id'];
 }
 
@@ -100,12 +104,11 @@ function ensure_list($accountId, $token, $listName)
 function set_list_items($accountId, $token, $listId, array $items)
 {
     global $CF_API;
-    list($code, $data) = cf_request('PUT', $CF_API . '/' . $accountId . '/rules/lists/' . $listId . '/items', $token, array(
-        'items' => $items,
-    ));
+    list($code, $data) = cf_request('PUT', $CF_API . '/' . $accountId . '/rules/lists/' . $listId . '/items', $token, $items);
     $opId = $data['result']['operation_id'] ?? null;
     if ($opId === null) {
-        throw new Exception('no operation_id in bulk update response');
+        $msg = $data['errors'][0]['message'] ?? ('HTTP ' . $code);
+        throw new Exception('bulk update failed: ' . $msg);
     }
     // poll until done (bulk ops are async; give it up to 30s)
     for ($i = 0; $i < 30; $i++) {
@@ -131,7 +134,7 @@ try {
     if ($config === false) {
         throw new Exception('cannot read /conf/config.xml');
     }
-    $cf = $config->OPNsense->cloudflareip ?? null;
+    $cf = $config->OPNsense->CloudflareIp ?? null;
     if ($cf === null) {
         throw new Exception('no cloudflareip config section');
     }
@@ -150,19 +153,32 @@ try {
         throw new Exception('account_id or api_token not configured');
     }
 
-    // iterate configured WAN rows
+    // single target list holds the egress IPs of ALL configured WANs
+    $listName = trim((string)$general->list_name);
+    if ($listName === '') {
+        throw new Exception('list_name not configured');
+    }
+
+    // resolve logical interface roles (wan/opt1) to physical names (vtnet0/...)
+    $physByRole = array();
+    foreach (($config->interfaces->children() ?? array()) as $role => $ifaceNode) {
+        $physByRole[(string)$role] = trim((string)$ifaceNode->if);
+    }
+
+    // pass 1: collect current egress IPs from every enabled WAN row
+    $items = array();
     $wanNodes = $cf->wans->wan ?? array();
     foreach ($wanNodes as $wan) {
         if ((string)$wan->enabled !== '1') {
             continue;
         }
         $iface = trim((string)$wan->interface);
-        $listName = trim((string)$wan->list_name);
         $includeV6 = (string)$wan->include_v6 === '1';
 
-        $row = array('interface' => $iface, 'list' => $listName, 'updated' => false);
+        $row = array('interface' => $iface, 'updated' => false);
 
-        $ips = interface_ips($iface);
+        $phys = isset($physByRole[$iface]) ? $physByRole[$iface] : $iface;
+        $ips = interface_ips($phys);
         if ($ips === null) {
             $state['errors'][] = "$iface: interface not found";
             continue;
@@ -171,34 +187,45 @@ try {
             $state['errors'][] = "$iface: no usable address";
             continue;
         }
-
-        $items = array();
         if ($ips['ipv4'] !== null) {
             $items[] = array('ip' => $ips['ipv4']);
         }
         if ($includeV6 && $ips['ipv6'] !== null) {
             $items[] = array('ip' => $ips['ipv6']);
         }
+        $row['ipv4'] = $ips['ipv4'];
+        $row['ipv6'] = $ips['ipv6'];
+        $state['wans'][] = $row;
+    }
 
-        // cache last-known state per list (avoid useless API calls)
-        $cacheFile = '/var/run/cloudflareip.' . md5($accountId . '/' . $listName) . '.cache';
-        $lastItems = @json_decode(@file_get_contents($cacheFile), true);
-        if ($lastItems === $items) {
-            logmsg("$iface -> $listName: unchanged (" . json_encode($items) . ')');
-            $row['ipv4'] = $ips['ipv4'];
-            $row['ipv6'] = $ips['ipv6'];
-            $state['wans'][] = $row;
-            continue;
-        }
+    if (count($items) === 0) {
+        throw new Exception('no usable egress IPs from configured WANs');
+    }
 
+    // dedupe identical addresses (two WANs may NAT to the same public IP)
+    $seen = array();
+    foreach ($items as $item) {
+        $seen[$item['ip']] = true;
+    }
+    $items = array();
+    foreach (array_keys($seen) as $ip) {
+        $items[] = array('ip' => $ip);
+    }
+
+    // cache last-known state (avoid useless API calls)
+    $cacheFile = '/var/run/cloudflareip.' . md5($accountId . '/' . $listName) . '.cache';
+    $lastItems = @json_decode(@file_get_contents($cacheFile), true);
+    if ($lastItems === $items) {
+        logmsg("$listName: unchanged (" . json_encode($items) . ')');
+    } else {
         $listId = ensure_list($accountId, $token, $listName);
         set_list_items($accountId, $token, $listId, $items);
         file_put_contents($cacheFile, json_encode($items));
-        logmsg("$iface -> $listName: updated to " . json_encode($items));
-        $row['ipv4'] = $ips['ipv4'];
-        $row['ipv6'] = $ips['ipv6'];
-        $row['updated'] = true;
-        $state['wans'][] = $row;
+        logmsg("$listName: updated to " . json_encode($items));
+        foreach ($state['wans'] as &$row) {
+            $row['updated'] = true;
+        }
+        unset($row);
     }
 } catch (Exception $e) {
     $state['errors'][] = $e->getMessage();

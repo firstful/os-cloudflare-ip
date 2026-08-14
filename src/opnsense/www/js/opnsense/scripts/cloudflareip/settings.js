@@ -8,29 +8,31 @@ $( document ).ready(function() {
     // ---- general settings ----
 
     function loadGeneral() {
-        AjaxApi.get('/api/cloudflareip/settings/getGeneral', {}, function(data) {
-            generalData = data.general;
-            $('#general\\.enabled').prop('checked', (generalData.enabled == '1'));
-            $('#general\\.account_id').val(generalData.account_id);
-            $('#general\\.api_token').val(generalData.api_token);
-            $('#general\\.interval').val(generalData.interval);
+        AjaxApi.get('/api/cloudflareip/settings/get', {}, function(data) {
+            generalData = data.CloudflareIp.general;
+            $('#general\\\\.enabled').prop('checked', (generalData.enabled == '1'));
+            $('#general\\\\.account_id').val(generalData.account_id);
+            $('#general\\\\.api_token').val(generalData.api_token);
+            $('#general\\\\.list_name').val(generalData.list_name);
+            $('#general\\\\.interval').val(generalData.interval);
         });
     }
 
     $('#saveGeneralBtn').click(function() {
         var data = {
-            'general.enabled': $('#general\\.enabled').is(':checked') ? '1' : '0',
-            'general.account_id': $('#general\\.account_id').val(),
-            'general.api_token': $('#general\\.api_token').val(),
-            'general.interval': $('#general\\.interval').val()
+            'CloudflareIp[general][enabled]': $('#general\\\\.enabled').is(':checked') ? '1' : '0',
+            'CloudflareIp[general][account_id]': $('#general\\\\.account_id').val(),
+            'CloudflareIp[general][api_token]': $('#general\\\\.api_token').val(),
+            'CloudflareIp[general][list_name]': $('#general\\\\.list_name').val(),
+            'CloudflareIp[general][interval]': $('#general\\\\.interval').val()
         };
-        AjaxApi.post('/api/cloudflareip/settings/setGeneral', data, function(data) {
-            if (data.status == 'ok') {
+        AjaxApi.post('/api/cloudflareip/settings/set', data, function(data) {
+            if (data.result == 'saved') {
                 $('#saveGeneralBtn').removeClass('btn-primary').addClass('btn-success').text('Saved');
                 setTimeout(function(){ $('#saveGeneralBtn').removeClass('btn-success').addClass('btn-primary').text('Save'); }, 1500);
                 loadGeneral();
             } else {
-                BootstrapDialog.alert(data.message || 'Save failed');
+                BootstrapDialog.alert(JSON.stringify(data.validations || data));
             }
         });
     });

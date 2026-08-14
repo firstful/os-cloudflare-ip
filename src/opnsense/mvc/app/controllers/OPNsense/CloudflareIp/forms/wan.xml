@@ -1,0 +1,25 @@
+<form>
+  <field>
+    <id>wan.enabled</id>
+    <label>Enabled</label>
+    <type>checkbox</type>
+    <help>Sync this interface's egress IP to its Cloudflare list.</help>
+  </field>
+  <field>
+    <id>wan.interface</id>
+    <label>Interface</label>
+    <type>text</type>
+    <help>OPNsense interface name, e.g. wan or opt1. Its egress IP is added to the shared Cloudflare list.</help>
+  </field>
+  <field>
+    <id>wan.include_v6</id>
+    <label>Include IPv6</label>
+    <type>checkbox</type>
+    <help>Also publish the global IPv6 /64 if present.</help>
+  </field>
+  <field>
+    <id>wan.description</id>
+    <label>Description</label>
+    <type>text</type>
+  </field>
+</form>
